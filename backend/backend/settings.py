@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     ## customized
     'Studios',
     'Accounts',
+    'Subscriptions',
+    'phone_field',
 
     ## third party package
     'rest_framework',

@@ -20,5 +20,6 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('studio/', include('Studios.urls')),
-    path('accounts/', include('Accounts.urls'))
+    path('accounts/', include('Accounts.urls')), 
+    path('subscriptions/', include('Subscriptions.urls'))
 ]
