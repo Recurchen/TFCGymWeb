@@ -78,13 +78,15 @@ class CreatePaymentMethodView(CreateAPIView):
     serializer_class = PaymentMethodSerializer
 
     def create(self, request, *args, **kwargs):
+        user = get_object_or_404(User, pk=kwargs['user_id'])
+        self.check_object_permissions(request, user)
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         pm = self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         response = Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
         
-        user = get_object_or_404(User, pk=kwargs['user_id'])
         profile = Profile.objects.get(user=user)
         profile.payment_method = pm
         print(profile.payment_method)

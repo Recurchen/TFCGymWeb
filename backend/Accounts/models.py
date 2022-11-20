@@ -19,9 +19,10 @@ class PaymentMethod(models.Model):
 
 class Profile(models.Model):
     user = models.OneToOneField(User, related_name='userprofile', on_delete=models.CASCADE)
-    phone_number = PhoneField(blank=True, help_text='Contact phone number')
+    phone_number = PhoneField(blank=True, null=True, help_text='Contact phone number')
     avatar = models.ImageField(blank=True, null=True, upload_to="images/profile")
     payment_method = models.ForeignKey(to=PaymentMethod, on_delete=SET_NULL, 
                                         related_name="profile", blank=True, null=True)
+    is_subscribed = models.BooleanField(null=True, default=False)
     # todo: subscription
     # todo: payment method 

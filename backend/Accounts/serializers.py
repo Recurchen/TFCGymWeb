@@ -1,3 +1,4 @@
+from django.forms import ValidationError
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
@@ -7,18 +8,25 @@ from .models import Profile, PaymentMethod
 
 class SignUpSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(label=_("Confirm password"), write_only=True, style={"input_type": "password"})
-    phone_number = serializers.CharField(source='userprofile.phone_number')
-    avatar = serializers.ImageField(source='userprofile.avatar')
+    phone_number = serializers.CharField(source='userprofile.phone_number', required=False)
+    avatar = serializers.ImageField(source='userprofile.avatar', required=False)
+    is_subscribed = serializers.BooleanField(source='userprofile.is_subscribed', required=False)
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'password', 'password2','phone_number', 'avatar')
+        fields = ('id', 'username', 'first_name', 'last_name', 'email', 'password', 'password2','phone_number', 'avatar', 'is_subscribed')
+        required = ['username', 'first_name', 'last_name', 'email', 'password', 'password2',]
         extra_kwargs = {
             'password' : {'write_only': True, "style": {"input_type": "password"}},
         }
 
     def create(self, validated_data):
-        phone_num = validated_data.get('userprofile').get('phone_number')
-        avatar = validated_data.get('userprofile').get('avatar')
+        if validated_data.get('password') != validated_data.get('password2'):
+            raise serializers.ValidationError({'message': 'password is not match'})
+        
+        profile_info = validated_data.get('userprofile', None)
+        if profile_info is not None:
+            phone_num = profile_info.get('phone_number')
+            avatar = profile_info.get('avatar')
 
         user = User.objects.create(
             username=validated_data.get('username'),
@@ -26,20 +34,27 @@ class SignUpSerializer(serializers.ModelSerializer):
             first_name=validated_data.get('first_name'),
             last_name=validated_data.get('last_name'),
             password=validated_data.get('password')
+            #is_subscribed = false by defalut 
         )
         user.set_password(validated_data.get('password'))
         user.save()
+        
+        if profile_info is not None:
+            Profile.objects.create(user=user, phone_number=phone_num, avatar=avatar)
+        else:
+            Profile.objects.create(user=user)
 
-        Profile.objects.create(user=user, phone_number=phone_num, avatar=avatar)
         return user
 
 class RetrieveUpdateProfileSerializer(serializers.ModelSerializer):
-    phone_number = serializers.CharField(source='userprofile.phone_number')
-    avatar = serializers.ImageField(source='userprofile.avatar')
+    phone_number = serializers.CharField(source='userprofile.phone_number', required=False)
+    avatar = serializers.ImageField(source='userprofile.avatar', required=False)
+    is_subscribed = serializers.BooleanField(source='userprofile.is_subscribed', required=False)
     class Meta:
         model = get_user_model()
-        fields = ["username", "first_name", "last_name", "email", "avatar", "phone_number"]
-        read_only_fields = ["username"]
+        fields = ["username", "first_name", "last_name", "email", "avatar", "phone_number", "is_subscribed"]
+        read_only_fields = ["username"] # cannot modify username
+        required = []
 
     def update(self, instance, validated_data):
         instance.user.first_name = validated_data.get("first_name", instance.user.first_name)
@@ -55,8 +70,8 @@ class RestrictedProfileSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(source='userprofile.avatar')
     class Meta:
         model = get_user_model()
-        fields = ["username","avatar"]
-        read_only_fields = ["username","phone_number"]
+        fields = ["username","avatar", "is_subscribed"]
+        read_only_fields = ["username","avatar", "is_subscribed"]
 
 class PaymentMethodSerializer(serializers.ModelSerializer):
     class Meta:
