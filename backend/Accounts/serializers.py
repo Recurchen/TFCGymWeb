@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth import get_user_model
-from .models import Profile
+from .models import Profile, PaymentMethod
 
 
 class SignUpSerializer(serializers.ModelSerializer):
@@ -17,7 +17,6 @@ class SignUpSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        print(validated_data)
         phone_num = validated_data.get('userprofile').get('phone_number')
         avatar = validated_data.get('userprofile').get('avatar')
 
@@ -58,4 +57,29 @@ class RestrictedProfileSerializer(serializers.ModelSerializer):
         model = get_user_model()
         fields = ["username","avatar"]
         read_only_fields = ["username","phone_number"]
+
+class PaymentMethodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentMethod
+        fields = ['card_type', 'card_num', 'expired_date', 'cvv', 'billing_address']
+        required = ['card_type', 'card_num',]
+
+    def update(self, instance, validated_data):
+        instance.card_type = validated_data.get("card_type", instance.card_type)
+        instance.card_num = validated_data.get("card_num", instance.card_num)
+        instance.expired_date = validated_data.get("expired_date", instance.expired_date)
+        instance.cvv = validated_data.get("cvv", instance.cvv)
+        instance.billing_address = validated_data.get("billing_address", instance.billing_address)
+        instance.save()
+        return instance
+
+    def create(self, validated_data):
+        pay_method = PaymentMethod.objects.create(
+            card_type = validated_data.get("card_type"),
+            card_num =  validated_data.get("card_num"),
+            expired_date = validated_data.get("expired_date", None),
+            cvv = validated_data.get("cvv", None),
+            billing_address = validated_data.get("billing_address", None)
+        )
+        return pay_method
 
