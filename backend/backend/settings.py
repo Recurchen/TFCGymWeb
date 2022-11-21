@@ -39,13 +39,22 @@ INSTALLED_APPS = [
     'Studios',
     'Accounts',
     'classes',
+    'Subscriptions',
+    
     ## third party package
     'rest_framework',
+    'django_filters',
     'recurrence',
-    'rest_framework.authtoken'
+    'rest_framework.authtoken',
+    'phone_field',
+    'schedule',
 
 
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

@@ -1,53 +1,38 @@
+
+from datetime import timezone
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
+
 from rest_framework.response import Response
-from rest_framework import generics
+from rest_framework import generics, filters
+from django_filters.rest_framework import DjangoFilterBackend
+import django_filters.rest_framework
+from django.db.models import Prefetch
+
 import requests
 import json
 
 from .serializers import StudioSerializer, UserLocationSerializer
-from .models import Studio
+from .models import Amenity, Studio
+from classes.models import Class
 
 # Create your views here.
 
-api_key = 'AIzaSyCcnFNK3iBodsyc0utQgF0ULxB_wS8pAMs'
-
 class StudiosListView(generics.ListCreateAPIView):
-    serializer_class = StudioSerializer
-
-    def get_queryset(self):
-        studios = Studio.objects.all()
-        return studios
-
-    def list(self, request):
-        queryset = self.get_queryset()
-        serializer = StudioSerializer(queryset, many=True)
-        return Response(serializer.data)
-
-
-class NearMeGymsView(APIView):
     serializer_class = UserLocationSerializer
 
-    def get(self, request, *args, **kwargs):
-        return Response({})
-
-    def post(self, request, *args, **kwargs):
-        serializer = UserLocationSerializer(data=request.data)
-
-        if serializer.is_valid():
-            origin_data = serializer.data.get('location')
-        # else:
-        #     return Response(
-        #         serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    def get_queryset(self):
+        
         studios = Studio.objects.all()
+        #studios = Studio.objects.filter(name__contains = 'gym')
+        #studios = Studio.objects.filter(amenities__type__contains = 'Pool')
+        #studios = Studio.objects.prefetch_related(Prefetch('amenities', queryset= Amenity.objects.filter(type__contains = "Court")))
+        #studios = studios.prefetch_related(Prefetch('classes', queryset= Class.objects.filter(name__contains = "Cardio"))).all()
+        return studios
 
-        #destinations = ('43.5483, -79.6627', 'One Bloor St', 'Canada Wonderland')
-        dest_order = {}
-
-        for studio in studios:
-            origin = origin_data
-            destination = studio.address
+    def get_queryset_sorted(self, origin, name, type, class_name, coach):
+        
+        def calculate_dist(origin, destination):
             url = "https://maps.googleapis.com/maps/api/distancematrix/json?origins="+origin+"&destinations="+destination+"&units=imperial&key=AIzaSyCcnFNK3iBodsyc0utQgF0ULxB_wS8pAMs"
 
             payload={}
@@ -57,24 +42,52 @@ class NearMeGymsView(APIView):
 
             content = response.text
             json_data = json.loads(content)
-            time = json_data["rows"][0]["elements"][0]["duration"]["text"]
-            origin = json_data['origin_addresses']
-            dest = json_data['destination_addresses'][0]
             seconds = json_data["rows"][0]["elements"][0]["duration"]["value"]
 
-            dest_order[dest] = seconds
+            return seconds
 
-        dest_sorted = sorted(dest_order.items(), key=lambda x: x[1])
+        if name == None:
+            studios = Studio.objects.all()
+        else:
+            # studios = Studio.objects.prefetch_related(Prefetch('amenities', queryset= Amenity.objects.filter(type__contains = type))).all()
+            # Status.objects.prefetch_related(Prefetch('tasks', queryset = Task.objects.filter(contact=contactID))).all()
+            studios = Studio.objects.filter(name__contains = name, amenities__type__contains = type, classes__name__contains = class_name, classes__coach__contains = coach)
+            #studios = studios.filter(name__contains = name)
+            # studios = studios.prefetch_related(Prefetch('amenities', queryset= Amenity.objects.filter(type__contains = type))).all()
+            #studios = studios.prefetch_related(Prefetch('classes', queryset= Class.objects.filter(name__contains = class_name))).all()
+            #studios = studios.prefetch_related(Prefetch('amenities', queryset= Amenity.objects.filter(type__contains = type)), Prefetch('classes', queryset= Class.objects.filter(name__contains = class_name))).all()
+        sorted_studios = sorted(studios, key = lambda studio: calculate_dist(origin, studio.address), reverse = False)
+        return sorted_studios
 
+    def list(self, request):
+        queryset = self.get_queryset()
+        serializer = StudioSerializer(queryset, many=True)
 
-        return Response({'origin': origin,\
-                         'sorted_destinations':dest_sorted,
-                         'best_destinations': next(iter(dest_sorted))})
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        serializer = UserLocationSerializer(data=request.data)
+
+        if serializer.is_valid():
+            origin_data = serializer.data.get('location')
+            name_data = serializer.data.get('name')
+            amenities = serializer.data.get('amenities')
+            class_name = serializer.data.get('class_name')
+            coach = serializer.data.get('coach')
+        
+        
+        if not filter:
+            queryset = self.get_queryset_sorted(origin_data, name_data, amenities)
+
+        else:
+            queryset = self.get_queryset_sorted(origin_data, name_data, amenities, class_name, coach)
+        serializer = StudioSerializer(queryset, many=True)
+
+        return Response(serializer.data)
 
 
 class StudioDetailView(generics.RetrieveAPIView):
     serializer_class = StudioSerializer
-    # queryset = Studio.objects.all()
 
     def get_object(self):
         return get_object_or_404(Studio, id=self.kwargs['studio_id'])
