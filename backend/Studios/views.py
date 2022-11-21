@@ -42,10 +42,11 @@ class StudiosListView(generics.ListCreateAPIView):
         if name == None:
             studios = Studio.objects.all()
         else:
-            studios = Studio.objects.prefetch_related(Prefetch('amenities', queryset= Amenity.objects.filter(type__contains = type))).all()
+            # studios = Studio.objects.prefetch_related(Prefetch('amenities', queryset= Amenity.objects.filter(type__contains = type))).all()
             # Status.objects.prefetch_related(Prefetch('tasks', queryset = Task.objects.filter(contact=contactID))).all()
-            #studios = Studio.objects.filter(name__contains = name)
-            studios = studios.filter(name__contains = name)
+            studios = Studio.objects.filter(name__contains = name)
+            #studios = studios.filter(name__contains = name)
+            studios = studios.prefetch_related(Prefetch('amenities', queryset= Amenity.objects.filter(type__contains = type))).all()
         sorted_studios = sorted(studios, key = lambda studio: calculate_dist(origin, studio.address), reverse = False)
         return sorted_studios
 
