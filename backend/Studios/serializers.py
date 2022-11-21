@@ -27,5 +27,8 @@ class StudioSerializer(serializers.ModelSerializer):
 class UserLocationSerializer(serializers.Serializer):
     name = serializers.CharField(max_length = 255)
     location = serializers.CharField(max_length = 255)
+<<<<<<< HEAD
     amenities = serializers.CharField(max_length = 255)
 
+=======
+>>>>>>> 2a2cd131ab18be77d78d7d87195a421d721850a4
