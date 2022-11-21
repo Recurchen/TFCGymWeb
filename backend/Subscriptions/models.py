@@ -1,8 +1,9 @@
 from django.db import models
 import datetime
 from Studios.models import Studio
-from Accounts.models import Profile
-from django.db.models import CASCADE, SET_NULL
+from Accounts.models import Profile, PaymentMethod
+from django.contrib.auth.models import User
+from django.db.models import CASCADE, SET_NULL, DO_NOTHING
 from django.core.exceptions import ValidationError
 
 
@@ -62,8 +63,9 @@ class Subscription(models.Model):
     canceled = models.BooleanField(blank = True, default=False)
     auto_pay = models.BooleanField(blank = True, default=True)
 
-    def get_end_time(self):
-        st = datetime.datetime.strptime(self.start_time, "%m/%d/%y")
+    def get_end_time(self, time):
+        st = time
+        # st = datetime.datetime.strptime(time, "%m/%d/%y")
         time_unit = self.plan.time_unit
         time_range = self.plan.time_range
         
@@ -81,7 +83,9 @@ class Subscription(models.Model):
 
         end_time = st + time_delta
 
-        return datetime.datetime.strptime(end_time, "%m/%d/%y")
+        return end_time
+        # return datetime.datetime.strptime(end_time, "%m/%d/%y")
+
 
     def cancel(self):
         self.canceled = True
@@ -89,3 +93,9 @@ class Subscription(models.Model):
 
     def __str__(self):
         return f'{self.user.user.username} -- {self.plan.name} -- {self.start_time} -- {self.get_end_time()}'
+
+class Payment(models.Model):
+    user = models.ForeignKey(to=User, on_delete=CASCADE, related_name='payment')
+    subscription = models.ForeignKey(to=Subscription, on_delete=CASCADE, related_name='payment', null=True)
+    payment_method = models.ForeignKey(to=PaymentMethod, on_delete=DO_NOTHING, related_name="payment_method")
+    datetime = models.DateTimeField()

@@ -46,7 +46,8 @@ INSTALLED_APPS = [
 
     ## third party package
     'rest_framework',
-    'rest_framework.authtoken'
+    'rest_framework.authtoken',
+    "schedule",
 
 ]
 
