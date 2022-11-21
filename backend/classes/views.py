@@ -3,13 +3,12 @@ from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.generics import CreateAPIView, DestroyAPIView, ListAPIView
 from rest_framework.pagination import PageNumberPagination
-# from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from classes.models import Class, ClassInstance, Enrollment
 from classes.serializers import ClassInstanceSerializer, EnrollmentSerializer
 from rest_framework.response import Response
 import datetime
 from Studios.models import Studio
-from django.utils import timezone
 
 
 def drop_class_after(after: datetime.datetime, user: User):
@@ -24,8 +23,7 @@ def drop_class_after(after: datetime.datetime, user: User):
 
 def future_instances(class_instances: List[ClassInstance]) -> List[ClassInstance]:
     classins_ids = [c.id for c in class_instances]
-    # now = datetime.datetime.now()
-    now = timezone.now()
+    now = datetime.datetime.now()
     return ClassInstance.objects.filter(start_time__gt=now, is_cancelled=False,
                                         id__in=classins_ids).order_by('start_time')
     # future_class_instances = []  # future class instances for all belonged classes
@@ -94,6 +92,7 @@ def search_by_time_range(start: str, end: str, studio_id: int) -> List[ClassInst
 
 class EnrollClassView(CreateAPIView):
     serializer_class = EnrollmentSerializer
+    #permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
         if request.GET.get('class_id', '') == '':
@@ -172,6 +171,7 @@ class EnrollClassView(CreateAPIView):
 
 class DropClassView(DestroyAPIView):
     serializer_class = EnrollmentSerializer
+    #permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
         if request.GET.get('class_id', '') == '':
