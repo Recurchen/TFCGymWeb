@@ -22,8 +22,18 @@ class StudiosListView(generics.ListCreateAPIView):
     serializer_class = UserLocationSerializer
 
     def get_queryset(self):
+        name = self.request.query_params.get('name') or ''
+        amenities = self.request.query_params.get('amenities') or ''
+        class_name = self.request.query_params.get('class') or ''
+        coach = self.request.query_params.get('coach') or ''
+
+
+        studios = Studio.objects.filter(name__contains = name, \
+                                        amenities__type__contains = amenities, \
+                                        classes__name__contains = class_name, \
+                                        classes__coach__contains = coach
+                                        )
         
-        studios = Studio.objects.all()
         #studios = Studio.objects.filter(name__contains = 'gym')
         #studios = Studio.objects.filter(amenities__type__contains = 'Pool')
         #studios = Studio.objects.prefetch_related(Prefetch('amenities', queryset= Amenity.objects.filter(type__contains = "Court")))
