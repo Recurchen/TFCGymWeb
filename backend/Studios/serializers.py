@@ -5,7 +5,6 @@ from .models import Studio, Image, Amenity
 from classes.models import Class
 
 
-
 class StudioImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
