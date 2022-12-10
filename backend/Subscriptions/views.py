@@ -196,8 +196,11 @@ class CancelSubView(APIView):
 
         try:
             profile = Profile.objects.get(user=user)
+            print(user.id)
             sub = Subscription.objects.filter(user=profile).order_by('-start_time').first()
             current_end_time = sub.get_end_time(sub.start_time)
+            print(current_end_time)
+            drop_class_after(current_end_time, user)
             sub.cancel()
             sub.save()
             profile.is_subscribed = False
@@ -208,8 +211,7 @@ class CancelSubView(APIView):
             for payment in future_payments:
                 if payment.datetime > now:
                     payment.delete()
-        
-            drop_class_after(current_end_time, user)
+
 
             res = {"message":"your subscription is canceled"}
             return Response(res, status=status.HTTP_200_OK)
