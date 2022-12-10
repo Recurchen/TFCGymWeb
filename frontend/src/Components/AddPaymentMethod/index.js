@@ -71,10 +71,11 @@ const AddPaymentMethod = (props) => {
              {success ? <AddSuccessPop /> : null}
               </div>
         <form className="paymentmethod-form" onSubmit={handleSubmit}>
-            <label htmlFor="card_type">Select Payment Method*</label>
+            <label className="addp-label" htmlFor="card_type">Select Payment Method*</label>
             <select name="slt_card_type" 
                     id="slt_card_type" 
-                    onChange={handleSelect}>
+                    onChange={handleSelect}
+                    className="addp-input">
                 <option>Please choose one Card Type</option>
                     {options.map((option, index) => {
                         return <option key={index} >
@@ -82,31 +83,35 @@ const AddPaymentMethod = (props) => {
                         </option>
                 })}
             </select>
-            <label htmlFor="card_num">Card Number*</label>
+            <label className="addp-label" htmlFor="card_num">Card Number*</label>
             <input value={card_num} 
                    onChange={(e) => setCardNum(e.target.value)}
                    type="card_num" 
                    placeholder="enter your card number" 
                    id="card_num" 
-                   name="card_num" />
-            <label htmlFor="cvv">CVV</label>
+                   name="card_num" 
+                   className="addp-input"/>
+            <label className="addp-label" htmlFor="cvv">CVV</label>
             <input value={cvv} 
                    onChange={(e) => setCvv(e.target.value)}
                    placeholder="enter your card cvv"
                    id="cvv" 
-                   name="cvv" />
-            <label htmlFor="expired_date">Card Expired Date</label>
+                   name="cvv" 
+                   className="addp-input"/>
+            <label className="addp-label" htmlFor="expired_date">Card Expired Date</label>
             <input value={expired_date}
                    type = "date" 
                    onChange={(e) => setExpiredDate(e.target.value)}
                    id="expired_date" 
-                   name="expired_date" />
-            <label htmlFor="billing_address">Billing Address</label>
+                   name="expired_date" 
+                   className="addp-input"/>
+            <label className="addp-label" htmlFor="billing_address">Billing Address</label>
             <input value={billing_address} 
                    onChange={(e) => setBillingAdd(e.target.value)}
                    placeholder="enter your billing address"
                    id="billing_address" 
-                   name="billding_address" />         
+                   name="billding_address" 
+                   className="addp-input"/>         
             <button className="reg-log-btn" id="submit" type="submit">Update</button>
         </form>
     </div>

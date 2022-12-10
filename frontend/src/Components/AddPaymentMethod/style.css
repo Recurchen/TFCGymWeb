@@ -35,12 +35,12 @@
     }
   }
   
-  label {
+  .addp-label {
     text-align: left;
     padding: 0.25rem 0;
   }
   
-  input{
+  .addp-input{
     margin-bottom: 0.5rem 0;
     padding: 1rem;
     border: none;

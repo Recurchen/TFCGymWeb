@@ -76,7 +76,7 @@ const UpdateOrCancelSub = () => {
     useEffect(() => {
         if(is_cancel === true){
         console.log("enter cancel use effect");
-        fetch(`http://127.0.0.1:8000/subscriptions/users/${id.userId}/cancel/`,
+        fetch(`http://localhost:8000/subscriptions/users/${id.userId}/cancel/`,
         {method: 'POST',
          headers: cancelHeaders})
         .then(res => {
